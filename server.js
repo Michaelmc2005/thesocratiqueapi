@@ -26,7 +26,7 @@ app.post('/chat', async (req, res) => {
 
         // ensure message is a string
         const message = typeof req.body.message === 'string' ? req.body.message : JSON.stringify(req.body.message);
-        const previousMessages = req.body.chatMessages;
+        const previousMessages = req.body.chat_messages;
         if (!req.session.chatMessages) {
             req.session.chatMessages = [];
         }

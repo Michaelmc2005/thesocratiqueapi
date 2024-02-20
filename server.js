@@ -9,7 +9,6 @@ const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
-
 // set up the session
 app.use(session({
     secret: sessionSecret,
@@ -23,6 +22,9 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 app.post('/chat', async (req, res) => {
     try {
         console.log(req.body);
+        //tostring the request body
+
+        req.body = JSON.parse(JSON.stringify(req.body));
         const { message } = req.body;
 
         if (!req.session.chatMessages) {

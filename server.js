@@ -17,20 +17,13 @@ app.use(session({
     saveUninitialized: true
 }));
 
-//if it is a new session, clear the chat messages
-app.use((req, res, next) => {
-    if (!req.session.chatMessages) {
-        req.session.chatMessages = [];
-    }
-    next();
-});
 console.log(process.env.SESSION_SECRET);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 
 // set up the chat endpoint
 app.post('/chat', async (req, res) => {
     try {
+
         console.log(req.body);
 
         // ensure message is a string
@@ -56,7 +49,7 @@ app.post('/chat', async (req, res) => {
                 },
                 { 
                     role: "user", 
-                    content: "these are all the previous things i have asked you: " + previousMessages
+                    content: "these are all the previous things i have asked you - THE QUESTION I AM CURRENTLY ASKING, AND THAT YOU SHOULD BE PRIMARILY RESPONDING TO IS IN THE message: '' json object provided to you. do not place a super crazy heavy emphasis on the previous chat messages, simply use them as context and ensure correct and accurate referencing" + previousMessages
                 }
             ],
             model: "gpt-3.5-turbo",

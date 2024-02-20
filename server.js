@@ -16,7 +16,7 @@ app.use(session({
     saveUninitialized: true
 }));
 console.log(process.env.SESSION_SECRET);
-const openai = new OpenAI({ apiKey: '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' });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // set up the chat endpoint
 app.post('/chat', async (req, res) => {

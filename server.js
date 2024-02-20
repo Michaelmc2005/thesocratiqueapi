@@ -26,7 +26,7 @@ app.post('/chat', async (req, res) => {
 
         // ensure message is a string
         const message = typeof req.body.message === 'string' ? req.body.message : JSON.stringify(req.body.message);
-
+        const previousMessages = req.body.chatMessages;
         if (!req.session.chatMessages) {
             req.session.chatMessages = [];
         }
@@ -47,11 +47,12 @@ app.post('/chat', async (req, res) => {
                 },
                 { 
                     role: "user", 
-                    content: "these are all the previous things i have asked you: " + req.session.chatMessages.join(' ')
+                    content: "these are all the previous things i have asked you: " + previousMessages
                 }
             ],
             model: "gpt-3.5-turbo",
         });
+        console.log(req.session.chatMessages.join(' '))
 
         // process the response
         let generatedResponse = completion.choices[0].message.content;

@@ -16,6 +16,14 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
+
+//if it is a new session, clear the chat messages
+app.use((req, res, next) => {
+    if (!req.session.chatMessages) {
+        req.session.chatMessages = [];
+    }
+    next();
+});
 console.log(process.env.SESSION_SECRET);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

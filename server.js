@@ -19,6 +19,7 @@ app.use(session({
 console.log(process.env.SESSION_SECRET);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+
 // set up the chat endpoint
 app.post('/chat', async (req, res) => {
     try {

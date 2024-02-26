@@ -4,9 +4,7 @@ const { OpenAI } = require('openai');
 const session = require('express-session');
 const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp, FieldValue, Filter } = require('firebase-admin/firestore');
-
-
-
+const { Firestore } = require('@google-cloud/firestore');
 
 require('dotenv').config();
 const sessionSecret = process.env.SESSION_SECRET;
@@ -47,7 +45,6 @@ app.post('/chat', async (req, res) => {
 
         // ensure message is a string
         const message = typeof req.body.message === 'string' ? req.body.message : JSON.stringify(req.body.message);
-        const previousMessages = req.body.chat_messages;
         if (!req.session.chatMessages) {
             req.session.chatMessages = [];
         }
@@ -68,7 +65,7 @@ app.post('/chat', async (req, res) => {
                 },
                 { 
                     role: "user", 
-                    content: "these are all the previous things i have asked you - READ THE CONTENT OUTSIDE THE MESSAGE: '' JSON OBJECT AND CONSIDER IT AS A CHAT MESSAGES CONTEXT THE QUESTION I AM CURRENTLY ASKING, AND THAT YOU SHOULD BE PRIMARILY RESPONDING TO, do not place a super crazy heavy emphasis on the previous chat messages, simply use them as context and ensure correct and accurate referencing, usually the most recently asked question will be at the start or end of the following array" + req.session.chatMessages.join(' ') + "with this context, don't respond with anything like, 'it sounds like you're doing ____context____', or 'ahh, i see you're diving into _context_' - just respond like you're replying to the most recent message"
+                    content: "these are all the previous things i have asked you - READ THE CONTENT OUTSIDE THE MESSAGE: '' JSON OBJECT AND CONSIDER IT AS A CHAT MESSAGES CONTEXT THE QUESTION I AM CURRENTLY ASKING, AND THAT YOU SHOULD BE PRIMARILY RESPONDING TO, do not place a super crazy heavy emphasis on the previous chat messages, simply use them as context and ensure correct and accurate referencing, usually the most recently asked question will be at the start or end of the following array" + req.session.chatMessages.join(' ') + "with this context, don't respond with anything like, 'it sounds like you're doing ____context____', or 'it sounds like you're discussing', or 'ahh, i see you're diving into _context_' - just respond like you're replying to the most recent message"
                 },
                 {
                     role: "system",
@@ -102,6 +99,7 @@ app.post('/addUserToDB', async (req, res) => {
     try {
         const email = req.body.email;
         const name = req.body.name;
+
         const user = {
             email: email,
             name: name,
@@ -121,6 +119,7 @@ app.post('/addUserToDB', async (req, res) => {
         res.status(500).json({ error: 'Something went wrong' });
     }
 });
+
 // start the server
 app.listen(port, () => {
     console.log('Server is running');

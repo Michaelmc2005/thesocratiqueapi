@@ -4,6 +4,8 @@
     "dotenv": "^16.4.4",
     "express": "^4.18.2",
     "express-session": "^1.18.0",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^12.0.0",
     "openai": "^4.28.0"
   },
   "scripts": {

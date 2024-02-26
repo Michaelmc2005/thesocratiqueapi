@@ -2,9 +2,28 @@ const express = require('express');
 const axios = require('axios');
 const { OpenAI } = require('openai');
 const session = require('express-session');
+const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
+const { getFirestore, Timestamp, FieldValue, Filter } = require('firebase-admin/firestore');
+
+
+
+
 require('dotenv').config();
 const sessionSecret = process.env.SESSION_SECRET;
 const port = process.env.PORT || 3000;
+const firebaseApp = initializeApp({
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+    
+});
+console.log(firebaseApp)
+//intialise db
+const db = getFirestore(firebaseApp);
 
 // create a new express application
 const app = express();
@@ -49,10 +68,14 @@ app.post('/chat', async (req, res) => {
                 },
                 { 
                     role: "user", 
-                    content: "these are all the previous things i have asked you - THE QUESTION I AM CURRENTLY ASKING, AND THAT YOU SHOULD BE PRIMARILY RESPONDING TO IS IN THE message: '' json object provided to you. do not place a super crazy heavy emphasis on the previous chat messages, simply use them as context and ensure correct and accurate referencing" + previousMessages
+                    content: "these are all the previous things i have asked you - READ THE CONTENT OUTSIDE THE MESSAGE: '' JSON OBJECT AND CONSIDER IT AS A CHAT MESSAGES CONTEXT THE QUESTION I AM CURRENTLY ASKING, AND THAT YOU SHOULD BE PRIMARILY RESPONDING TO, do not place a super crazy heavy emphasis on the previous chat messages, simply use them as context and ensure correct and accurate referencing, usually the most recently asked question will be at the start or end of the following array" + req.session.chatMessages.join(' ') + "with this context, don't respond with anything like, 'it sounds like you're doing ____context____', or 'ahh, i see you're diving into _context_' - just respond like you're replying to the most recent message"
+                },
+                {
+                    role: "system",
+                    content: "every time you are responding to a message, you should include an engagement and understanding evaluation score on the topic as the conversation progresses, it should be from 0-100 and they will hopefully gradually increase throughout the conversation, return the number at the end of each of your responses in the format 'engagement: 0-100' 'understanding: 0-100 - this will be used to evaluate your performance and the user's engagement in the conversation"
                 }
             ],
-            model: "gpt-4-turbo",
+            model: "gpt-4-turbo-preview",
         });
         console.log(req.session.chatMessages.join(' '))
 
@@ -74,6 +97,30 @@ app.post('/chat', async (req, res) => {
     }
 });
 
+
+app.post('/addUserToDB', async (req, res) => {
+    try {
+        const email = req.body.email;
+        const name = req.body.name;
+        const user = {
+            email: email,
+            name: name,
+            created_at: FieldValue.serverTimestamp()
+        };
+        const userRef = db.collection('users').doc();
+        await userRef.set(user);
+        
+        if (!doc.exists) {
+            await userRef.set(user);
+            res.send('User added to DB');
+        } else {
+            res.send('User already exists');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Something went wrong' });
+    }
+});
 // start the server
 app.listen(port, () => {
     console.log('Server is running');
